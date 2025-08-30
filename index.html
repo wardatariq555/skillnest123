@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shop Locations</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.zoomhome/dist/leaflet.zoomhome.css" />
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-search@2.9.8/dist/leaflet-search.min.css" />
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  #mapid { 
+    height: 100vh; 
+  } 
+</style>
+</head>
+<body>
+
+  <div id="mapid"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.zoomhome/dist/leaflet.zoomhome.min.js"></script>
+  
+  <script src="https://unpkg.com/leaflet-search@2.9.8/dist/leaflet-search.src.js"></script>
+
+  <script>
+    var mymap = L.map('mapid', {zoomControl: false});
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mymap);
+
+    var shopsGeoJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": { "type": "Point", "coordinates": [ -81.97, 33.37 ] },
+          "properties": {
+            "name": "The Daily Grind Cafe",
+            "address": "123 Coffee St, Metropolis, 54321",
+            "timings": {
+              "monday": "7:00 AM - 5:00 PM", "tuesday": "7:00 AM - 5:00 PM",
+              "wednesday": "7:00 AM - 5:00 PM", "thursday": "7:00 AM - 5:00 PM",
+              "friday": "7:00 AM - 7:00 PM", "saturday": "8:00 AM - 4:00 PM",
+              "sunday": "Closed"
+            }
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": { "type": "Point", "coordinates": [ -81.12, 33.95 ] },
+          "properties": {
+            "name": "Books & Brews",
+            "address": "456 Fiction Ave, Readington, 98765",
+            "timings": {
+              "monday": "10:00 AM - 9:00 PM", "tuesday": "10:00 AM - 9:00 PM",
+              "wednesday": "10:00 AM - 9:00 PM", "thursday": "10:00 AM - 9:00 PM",
+              "friday": "10:00 AM - 10:00 PM", "saturday": "11:00 AM - 10:00 PM",
+              "sunday": "11:00 AM - 6:00 PM"
+            }
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": { "type": "Point", "coordinates": [ -80.8631, 33.4886 ] },
+          "properties": {
+            "name": "Cafy munch",
+            "address": "456 Fiction Ave, Readington, 98765",
+            "timings": {
+              "monday": "10:00 AM - 9:00 PM", "tuesday": "10:00 AM - 9:00 PM",
+              "wednesday": "10:00 AM - 9:00 PM", "thursday": "10:00 AM - 9:00 PM",
+              "friday": "10:00 AM - 10:00 PM", "saturday": "11:00 AM - 10:00 PM",
+              "sunday": "11:00 AM - 6:00 PM"
+            }
+          }
+        }
+      ]
+    };
+
+    var shopIcon = L.icon({
+        iconUrl: 'store-2017.png',
+        iconSize: [38, 38],
+        iconAnchor: [19, 38],
+        popupAnchor: [0, -30]
+    });
+
+    var shopsLayer = L.geoJSON(shopsGeoJSON, {
+      pointToLayer: function(feature, latlng) {
+          return L.marker(latlng, {icon: shopIcon});
+      },
+      onEachFeature: function (feature, layer) {
+        var popupContent = "<b>" + feature.properties.name + "</b><br>" +
+                           "Address: " + feature.properties.address + "<br><br>" +
+                           "<b>Hours:</b><br>";
+        for (const day in feature.properties.timings) {
+            const formattedDay = day.charAt(0).toUpperCase() + day.slice(1);
+            popupContent += formattedDay + ": " + feature.properties.timings[day] + "<br>";
+        }
+        layer.bindPopup(popupContent);
+      }
+    });
+
+    shopsLayer.addTo(mymap);
+
+    // Initialise the search control
+    var searchControl = new L.Control.Search({
+        position: 'topright',
+        layer: shopsLayer,
+        propertyName: 'name',
+        marker: false,
+        moveToLocation: function(latlng, title, map) {
+            map.setView(latlng, 12);
+        }
+    });
+
+    searchControl.on('search:locationfound', function(e) {
+        e.layer.openPopup();
+    });
+
+    mymap.addControl(searchControl);
+
+    var initialBounds = shopsLayer.getBounds();
+    mymap.fitBounds(initialBounds);
+    
+    var zoomHome = L.Control.zoomHome({
+        position: 'topleft',
+        homeCoordinates: initialBounds.getCenter(),
+        homeZoom: mymap.getBoundsZoom(initialBounds)
+    });
+    zoomHome.addTo(mymap);
+  </script>
+
+</body>
+</html>
