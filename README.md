@@ -18,4 +18,4 @@ Features
 Live Demo
 
 View the Project Here
- (replace with your Netlify or GitHub Pages link)
+ https://wardatariq555.github.io/skillnest123/
